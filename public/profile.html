@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile - Smart Task Manager</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 30px;
+      background: linear-gradient(90deg, #007bff, #6610f2);
+      color: white;
+    }
+
+    .nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: 500;
+    }
+
+    .nav a:hover {
+      text-decoration: underline;
+    }
+
+    .section {
+      margin-top: 25px;
+      padding: 25px;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+
+    .info-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .success {
+      color: green;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <h3>Smart Task Manager</h3>
+  <div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="tasks.html">Tasks</a>
+    <a href="profile.html">Profile</a>
+    <a href="reports.html">Reports</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+</div>
+
+<div class="container" style="max-width: 800px;">
+  <h2>My Profile 👤</h2>
+
+  <!-- Display User Info -->
+  <div class="info-box">
+    <p><strong>User ID:</strong> <span id="userId"></span></p>
+    <p><strong>Email:</strong> <span id="displayEmail"></span></p>
+  </div>
+
+  <!-- Profile Update -->
+  <div class="section">
+    <h3>Update Profile Information</h3>
+    <form id="profileForm">
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <button type="submit" class="btn">Update Profile</button>
+    </form>
+    <div id="profileMessage"></div>
+  </div>
+
+  <!-- Change Password -->
+  <div class="section">
+    <h3>Change Password</h3>
+    <form id="passwordForm">
+      <input type="password" id="newPassword" placeholder="New Password" required>
+      <button type="submit" class="btn secondary">Update Password</button>
+    </form>
+    <div id="passwordMessage"></div>
+  </div>
+
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+
+if (!token) {
+  window.location.href = "login.html";
+}
+
+// ================= LOAD PROFILE =================
+async function loadProfile() {
+  try {
+    const response = await fetch("/api/auth/profile", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch profile");
+    }
+
+    const user = await response.json();
+
+    document.getElementById("userId").innerText = user.id;
+    document.getElementById("displayEmail").innerText = user.email;
+    document.getElementById("name").value = user.name;
+    document.getElementById("email").value = user.email;
+
+  } catch (error) {
+    console.error(error);
+    alert("Error loading profile");
+  }
+}
+
+loadProfile();
+
+// ================= UPDATE PROFILE =================
+document.getElementById("profileForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+
+  const response = await fetch("/api/auth/update-profile", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ name, email })
+  });
+
+  const data = await response.json();
+
+  if (response.ok) {
+    document.getElementById("profileMessage").innerHTML =
+      `<div class="success">${data.message}</div>`;
+    loadProfile();
+  } else {
+    document.getElementById("profileMessage").innerHTML =
+      `<div class="error">${data.message}</div>`;
+  }
+});
+
+// ================= UPDATE PASSWORD =================
+document.getElementById("passwordForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const newPassword = document.getElementById("newPassword").value;
+
+  const response = await fetch("/api/auth/update-password", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify({ password: newPassword })
+  });
+
+  const data = await response.json();
+
+  if (response.ok) {
+    document.getElementById("passwordMessage").innerHTML =
+      `<div class="success">${data.message}</div>`;
+    document.getElementById("passwordForm").reset();
+  } else {
+    document.getElementById("passwordMessage").innerHTML =
+      `<div class="error">${data.message}</div>`;
+  }
+});
+
+// ================= LOGOUT =================
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

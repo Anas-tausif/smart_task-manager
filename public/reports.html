@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reports - Smart Task Manager</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 30px;
+      background: #007bff;
+      color: white;
+    }
+
+    .nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 15px;
+    }
+
+    .chart-container {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <h3>Smart Task Manager</h3>
+  <div>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="tasks.html">Tasks</a>
+    <a href="profile.html">Profile</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+</div>
+
+<div class="container" style="max-width: 900px;">
+  <h2>Task Reports 📊</h2>
+  <p>Visual representation of your productivity progress.</p>
+
+  <div class="chart-container">
+    <canvas id="taskChart"></canvas>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "login.html";
+
+async function loadReport() {
+  const response = await fetch("/api/tasks/summary", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  });
+
+  const data = await response.json();
+
+  const ctx = document.getElementById('taskChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Completed', 'Pending'],
+      datasets: [{
+        data: [data.completed, data.pending],
+        backgroundColor: ['#28a745', '#dc3545']
+      }]
+    },
+    options: {
+      responsive: true
+    }
+  });
+}
+
+loadReport();
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

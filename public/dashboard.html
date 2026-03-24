@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Smart Task Manager</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 30px;
+      background: #007bff;
+      color: white;
+    }
+
+    .nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 15px;
+    }
+
+    .dashboard-cards {
+      display: flex;
+      gap: 20px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      flex: 1;
+      min-width: 200px;
+      padding: 20px;
+      border-radius: 8px;
+      color: white;
+      text-align: center;
+    }
+
+    .total { background: #6c757d; }
+    .completed { background: #28a745; }
+    .pending { background: #dc3545; }
+
+    @media (max-width: 768px) {
+      .dashboard-cards {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <h3>Smart Task Manager</h3>
+  <div class="nav-links">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="tasks.html">Tasks</a>
+    <a href="profile.html">Profile</a>
+    <a href="reports.html">Reports</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+</div>
+
+<div class="container" style="max-width: 900px;">
+  <h2>Welcome, <span id="userName"></span> 👋</h2>
+  <p>This is your productivity overview dashboard.</p>
+
+  <div class="dashboard-cards">
+    <div class="card total">
+      <h3>Total Tasks</h3>
+      <h1 id="totalTasks">0</h1>
+    </div>
+
+    <div class="card completed">
+      <h3>Completed Tasks</h3>
+      <h1 id="completedTasks">0</h1>
+    </div>
+
+    <div class="card pending">
+      <h3>Pending Tasks</h3>
+      <h1 id="pendingTasks">0</h1>
+    </div>
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+
+if (!token) {
+  window.location.href = "login.html";
+}
+
+// Show username
+document.getElementById("userName").innerText =
+  localStorage.getItem("userName");
+
+// Fetch task summary
+async function loadSummary() {
+  const response = await fetch("/api/tasks/summary", {
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  });
+
+  const data = await response.json();
+
+  document.getElementById("totalTasks").innerText = data.total;
+  document.getElementById("completedTasks").innerText = data.completed;
+  document.getElementById("pendingTasks").innerText = data.pending;
+}
+
+loadSummary();
+
+// Logout
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("userName");
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>
